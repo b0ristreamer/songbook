@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>스케줄</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --accent: #e17a99;
+    --accent-rgb: 225, 122, 153;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f0f16;
+    --bg-card: #1b1b24;
+    --border: #2c2c37;
+    --text: #e8e8f0;
+    --text-dim: #9a9aab;
+    --text-faint: #7a7a8a;
+    --dayoff: rgba(255, 255, 255, 0.06);
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f2f6;
+    --bg-card: #ffffff;
+    --border: #e3e3ec;
+    --text: #1c1c26;
+    --text-dim: #55556a;
+    --text-faint: #86869c;
+    --dayoff: rgba(20, 20, 30, 0.05);
+  }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+  }
+  .page { width: 100%; max-width: 760px; padding: 24px 20px 60px; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  h1 { font-size: 18px; font-weight: 700; margin: 0; }
+  .theme-btn {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-dim);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .month-label { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .dow {
+    background: var(--bg-card);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-faint);
+    padding: 6px 0;
+  }
+  .dow.sun { color: #ef4444; }
+  .dow.sat { color: #3b82f6; }
+  .cell {
+    background: var(--bg-card);
+    min-height: 88px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .cell.dim { opacity: 0.35; }
+  .cell.dayoff { background: var(--dayoff); }
+  .cell.today .daynum {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .daynum { font-size: 12px; font-weight: 600; color: var(--text); }
+  .blocks { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .blk {
+    font-size: 10.5px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    color: var(--text);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .more { font-size: 10px; color: var(--text-faint); padding: 0 4px; }
+  .footer { margin-top: 18px; font-size: 11px; color: var(--text-faint); text-align: center; }
+  @media (max-width: 560px) {
+    .cell { min-height: 64px; padding: 4px; }
+    .blk { font-size: 9.5px; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="header-row">
+      <h1>📅 스케줄</h1>
+      <button type="button" class="theme-btn" id="themeToggle">라이트/다크</button>
+    </div>
+    <div class="month-label">2026년 7월</div>
+    <div class="grid">
+      <div class="dow sun ">일</div><div class="dow  ">월</div><div class="dow  ">화</div><div class="dow  ">수</div><div class="dow  ">목</div><div class="dow  ">금</div><div class="dow  sat">토</div>
+      <div class="cell dim"><div class="daynum">28</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">29</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">30</div><div class="blocks"></div></div><div class="cell"><div class="daynum">1</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">2</div><div class="blocks"></div></div><div class="cell"><div class="daynum">3</div><div class="blocks"></div></div><div class="cell"><div class="daynum">4</div><div class="blocks"></div></div><div class="cell"><div class="daynum">5</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">6</div><div class="blocks"></div></div><div class="cell"><div class="daynum">7</div><div class="blocks"></div></div><div class="cell"><div class="daynum">8</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">9</div><div class="blocks"></div></div><div class="cell"><div class="daynum">10</div><div class="blocks"></div></div><div class="cell"><div class="daynum">11</div><div class="blocks"></div></div><div class="cell"><div class="daynum">12</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">13</div><div class="blocks"></div></div><div class="cell"><div class="daynum">14</div><div class="blocks"></div></div><div class="cell"><div class="daynum">15</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">16</div><div class="blocks"></div></div><div class="cell"><div class="daynum">17</div><div class="blocks"></div></div><div class="cell"><div class="daynum">18</div><div class="blocks"></div></div><div class="cell"><div class="daynum">19</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">20</div><div class="blocks"></div></div><div class="cell today"><div class="daynum">21</div><div class="blocks"></div></div><div class="cell"><div class="daynum">22</div><div class="blocks"><div class="blk" style="background:rgba(209, 107, 160,0.16);border-left-color:#d16ba0">타로 레슨</div></div></div><div class="cell dayoff"><div class="daynum">23</div><div class="blocks"></div></div><div class="cell"><div class="daynum">24</div><div class="blocks"></div></div><div class="cell"><div class="daynum">25</div><div class="blocks"></div></div><div class="cell"><div class="daynum">26</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">27</div><div class="blocks"></div></div><div class="cell"><div class="daynum">28</div><div class="blocks"></div></div><div class="cell"><div class="daynum">29</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">30</div><div class="blocks"></div></div><div class="cell"><div class="daynum">31</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">1</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">2</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">3</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">4</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">5</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">6</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">7</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">8</div><div class="blocks"></div></div>
+    </div>
+    <div class="footer">하꼬로 만든 스케줄이에요</div>
+  </div>
+  <script>
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      var root = document.documentElement
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')
+    })
+  </script>
+</body>
+</html>
