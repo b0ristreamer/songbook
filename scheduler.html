@@ -49,14 +49,23 @@
     cursor: pointer;
   }
   .month-label { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
-  .grid {
+  .cal-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .dow-row {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
     background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
+  }
+  .grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--border);
   }
   .dow {
     background: var(--bg-card);
@@ -70,11 +79,12 @@
   .dow.sat { color: #3b82f6; }
   .cell {
     background: var(--bg-card);
-    min-height: 88px;
+    height: 88px;
     padding: 6px;
     display: flex;
     flex-direction: column;
     gap: 3px;
+    overflow: hidden;
   }
   .cell.dim { opacity: 0.35; }
   .cell.dayoff { background: var(--dayoff); }
@@ -89,7 +99,7 @@
     justify-content: center;
   }
   .daynum { font-size: 12px; font-weight: 600; color: var(--text); }
-  .blocks { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .blocks { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; min-height: 0; }
   .blk {
     display: flex;
     align-items: center;
@@ -106,11 +116,33 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  .blk-spacer { height: 16px; flex-shrink: 0; }
   .more { font-size: 10px; color: var(--text-faint); padding: 0 4px; }
   h1 { display: flex; align-items: center; gap: 6px; }
+  /* 여러 날짜에 걸친 서버 일정을 날짜 칸을 가로질러 이어붙인 하나의 바로 표시합니다.
+     grid에 새 트랙/행을 추가하지 않고 position:absolute 오버레이로만 그려서, 실제 날짜 칸
+     레이아웃(auto-flow 42칸)에는 전혀 관여하지 않습니다. */
+  .range-bar-overlay { position: absolute; inset: 0; pointer-events: none; }
+  .range-bar {
+    position: absolute;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 5px;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #fff;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .range-bar.cap-left { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
+  .range-bar.cap-right { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+  .range-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   @media (max-width: 560px) {
-    .cell { min-height: 64px; padding: 4px; }
+    .cell { height: 64px; padding: 4px; }
     .blk { font-size: 9.5px; }
+    .range-bar { height: 13px; font-size: 8.5px; }
   }
 </style>
 </head>
@@ -121,9 +153,12 @@
       <button type="button" class="theme-btn" id="themeToggle">라이트/다크</button>
     </div>
     <div class="month-label">7/12 ~ 8/22</div>
-    <div class="grid">
-      <div class="dow sun ">일</div><div class="dow  ">월</div><div class="dow  ">화</div><div class="dow  ">수</div><div class="dow  ">목</div><div class="dow  ">금</div><div class="dow  sat">토</div>
-      <div class="cell"><div class="daynum">12</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">13</div><div class="blocks"></div></div><div class="cell"><div class="daynum">14</div><div class="blocks"></div></div><div class="cell"><div class="daynum">15</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">16</div><div class="blocks"></div></div><div class="cell"><div class="daynum">17</div><div class="blocks"></div></div><div class="cell"><div class="daynum">18</div><div class="blocks"></div></div><div class="cell"><div class="daynum">19</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">20</div><div class="blocks"></div></div><div class="cell"><div class="daynum">21</div><div class="blocks"></div></div><div class="cell today"><div class="daynum">22</div><div class="blocks"><div class="blk" style="background:rgba(209, 107, 160,0.16);border-left-color:#d16ba0"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 6a3 3 0 0 1 0 5.8M21 19.5a5.5 5.5 0 0 0-4.2-5.3"/></svg><span class="blk-label">타로 레슨</span></div><div class="blk" style="background:rgba(142, 104, 207,0.16);border-left-color:#8e68cf"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="6" width="13" height="12" rx="1.5"/><path d="M16 10.5 21 7.5v9L16 13.5"/></svg><span class="blk-label">그림뱅</span></div></div></div><div class="cell dayoff"><div class="daynum">23</div><div class="blocks"></div></div><div class="cell"><div class="daynum">24</div><div class="blocks"></div></div><div class="cell"><div class="daynum">25</div><div class="blocks"></div></div><div class="cell"><div class="daynum">26</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">27</div><div class="blocks"></div></div><div class="cell"><div class="daynum">28</div><div class="blocks"></div></div><div class="cell"><div class="daynum">29</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">30</div><div class="blocks"></div></div><div class="cell"><div class="daynum">31</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">1</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">2</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">3</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">4</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">5</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">6</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">7</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">8</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">9</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">10</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">11</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">12</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">13</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">14</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">15</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">16</div><div class="blocks"><div class="blk" style="background:rgba(204, 153, 67,0.16);border-left-color:#cc9943"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg><span class="blk-label">플랜비 지원마감</span></div></div></div><div class="cell dim dayoff"><div class="daynum">17</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">18</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">19</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">20</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">21</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">22</div><div class="blocks"></div></div>
+    <div class="cal-wrap">
+      <div class="dow-row"><div class="dow sun ">일</div><div class="dow  ">월</div><div class="dow  ">화</div><div class="dow  ">수</div><div class="dow  ">목</div><div class="dow  ">금</div><div class="dow  sat">토</div></div>
+      <div class="grid">
+        <div class="cell"><div class="daynum">12</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">13</div><div class="blocks"></div></div><div class="cell"><div class="daynum">14</div><div class="blocks"></div></div><div class="cell"><div class="daynum">15</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">16</div><div class="blocks"></div></div><div class="cell"><div class="daynum">17</div><div class="blocks"></div></div><div class="cell"><div class="daynum">18</div><div class="blocks"></div></div><div class="cell"><div class="daynum">19</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">20</div><div class="blocks"></div></div><div class="cell"><div class="daynum">21</div><div class="blocks"></div></div><div class="cell today"><div class="daynum">22</div><div class="blocks"><div class="blk" style="background:rgba(209, 107, 160,0.16);border-left-color:#d16ba0"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 6a3 3 0 0 1 0 5.8M21 19.5a5.5 5.5 0 0 0-4.2-5.3"/></svg><span class="blk-label">타로 레슨</span></div><div class="blk" style="background:rgba(142, 104, 207,0.16);border-left-color:#8e68cf"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="6" width="13" height="12" rx="1.5"/><path d="M16 10.5 21 7.5v9L16 13.5"/></svg><span class="blk-label">그림뱅</span></div></div></div><div class="cell dayoff"><div class="daynum">23</div><div class="blocks"></div></div><div class="cell"><div class="daynum">24</div><div class="blocks"></div></div><div class="cell"><div class="daynum">25</div><div class="blocks"></div></div><div class="cell"><div class="daynum">26</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">27</div><div class="blocks"></div></div><div class="cell"><div class="daynum">28</div><div class="blocks"></div></div><div class="cell"><div class="daynum">29</div><div class="blocks"></div></div><div class="cell dayoff"><div class="daynum">30</div><div class="blocks"></div></div><div class="cell"><div class="daynum">31</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">1</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">2</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">3</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">4</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">5</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">6</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">7</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">8</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">9</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">10</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">11</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">12</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">13</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">14</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">15</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">16</div><div class="blocks"><div class="blk" style="background:rgba(204, 153, 67,0.16);border-left-color:#cc9943"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg><span class="blk-label">플랜비 지원마감</span></div></div></div><div class="cell dim dayoff"><div class="daynum">17</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">18</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">19</div><div class="blocks"></div></div><div class="cell dim dayoff"><div class="daynum">20</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">21</div><div class="blocks"></div></div><div class="cell dim"><div class="daynum">22</div><div class="blocks"></div></div>
+        <div class="range-bar-overlay"></div>
+      </div>
     </div>
   </div>
   <script>
