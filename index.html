@@ -85,7 +85,16 @@
   }
   .select-item:hover { background: rgba(var(--accent-rgb), 0.12); }
   .select-item.active { background: rgba(var(--accent-rgb), 0.16); color: var(--accent); font-weight: 600; }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  /* 장르 칩이 많아도 줄바꿈 없이 한 줄로 유지하고, 좌우로 스크롤해서 넘겨봅니다. */
+  .chips {
+    display: flex; gap: 6px; margin-bottom: 14px;
+    flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+  }
+  .chips::-webkit-scrollbar { height: 5px; }
+  .chips::-webkit-scrollbar-thumb { background: rgba(var(--accent-rgb), 0.35); border-radius: 999px; }
+  .chips::-webkit-scrollbar-track { background: transparent; }
+  .chips .chip { flex-shrink: 0; white-space: nowrap; }
   .chip {
     padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card);
     color: var(--text-dim); font-size: 12px; cursor: pointer;
@@ -102,7 +111,15 @@
   }
   .row .tag-empty { display: none; }
   .row .title { flex: 1 1 auto; min-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 14px; }
-  .row .artist { flex-shrink: 0; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-dim); font-size: 12px; }
+  .row .artist { flex-shrink: 0; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-dim); font-size: 12px; cursor: pointer; }
+  .row .artist:hover { color: var(--accent); text-decoration: underline; }
+  .artist-filter {
+    display: none; align-items: center; gap: 6px; margin-bottom: 10px;
+    padding: 5px 12px; border-radius: 999px; border: 1px solid var(--accent);
+    background: rgba(var(--accent-rgb), 0.16); color: var(--accent); font-size: 12px;
+    cursor: pointer; width: fit-content;
+  }
+  .artist-filter.on { display: inline-flex; }
   .row .stars { flex-shrink: 0; color: var(--accent); letter-spacing: 1px; font-size: 13px; }
   .empty, .count { color: var(--text-faint); font-size: 12px; }
   .count { margin-bottom: 8px; }
@@ -151,6 +168,8 @@
     <button type="button" class="chip active" data-genre="">전체</button>
     <button type="button" class="chip" data-genre="기타">기타</button><button type="button" class="chip" data-genre="보컬로이드">보컬로이드</button><button type="button" class="chip" data-genre="애니메이션">애니메이션</button><button type="button" class="chip" data-genre="자작곡">자작곡</button><button type="button" class="chip" data-genre="후렴원툴">후렴원툴</button><button type="button" class="chip" data-genre="Game">Game</button><button type="button" class="chip" data-genre="JPOP">JPOP</button><button type="button" class="chip" data-genre="KPOP">KPOP</button>
   </div>
+
+  <div class="artist-filter" id="artistFilter" title="가수 필터 해제"></div>
 
   <div class="count" id="count"></div>
   <div class="list" id="list">
@@ -925,6 +944,14 @@
   var searchInput = document.getElementById('search');
   var list = document.getElementById('list');
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+
+  // 장르 칩 줄 위에서 마우스 휠을 굴리면 좌우로 스크롤됩니다(가로 스크롤바를 잡지 않아도 되게).
+  var chipsRow = document.getElementById('genreChips');
+  chipsRow.addEventListener('wheel', function (e) {
+    if (e.deltaY === 0 || chipsRow.scrollWidth <= chipsRow.clientWidth) return;
+    e.preventDefault();
+    chipsRow.scrollLeft += e.deltaY;
+  }, { passive: false });
   var rows = Array.prototype.slice.call(document.querySelectorAll('.row'));
   var activeGenres = []; // 비어있으면 '전체' - 여러 장르를 동시에 선택할 수 있습니다.
 
@@ -973,6 +1000,35 @@
     return a.getAttribute('data-artist').localeCompare(b.getAttribute('data-artist'), 'ko');
   }
 
+  // 가수 이름을 클릭하면 그 가수의 노래만 보여줍니다. 다시 누르거나(같은 가수)
+  // 위에 뜨는 "가수: OOO ✕" 뱃지를 클릭하면 해제됩니다.
+  var activeArtist = null;
+  var artistFilterEl = document.getElementById('artistFilter');
+
+  function syncArtistFilterBadge(displayName) {
+    if (activeArtist) {
+      artistFilterEl.textContent = '가수: ' + displayName + '  ✕';
+      artistFilterEl.classList.add('on');
+    } else {
+      artistFilterEl.classList.remove('on');
+    }
+  }
+  artistFilterEl.addEventListener('click', function () {
+    activeArtist = null;
+    syncArtistFilterBadge('');
+    applyFilter();
+  });
+  rows.forEach(function (row) {
+    var artistEl = row.querySelector('.artist');
+    if (!artistEl) return;
+    artistEl.addEventListener('click', function () {
+      var key = row.getAttribute('data-artist');
+      activeArtist = activeArtist === key ? null : key;
+      syncArtistFilterBadge(artistEl.textContent);
+      applyFilter();
+    });
+  });
+
   function applyFilter() {
     var q = searchInput.value.trim().toLowerCase();
     var mode = currentSort;
@@ -982,7 +1038,8 @@
     sorted.forEach(function (row) {
       var matchesSearch = !q || row.getAttribute('data-search').indexOf(q) !== -1;
       var matchesGenre = activeGenres.length === 0 || activeGenres.indexOf(row.getAttribute('data-genre')) !== -1;
-      var show = matchesSearch && matchesGenre;
+      var matchesArtist = !activeArtist || row.getAttribute('data-artist') === activeArtist;
+      var show = matchesSearch && matchesGenre && matchesArtist;
       row.style.display = show ? '' : 'none';
       if (show) visible++;
     });
